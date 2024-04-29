@@ -70,7 +70,7 @@ static Config config;
 static int savefd;
 static el::base::DispatchAction dispatchAction = el::base::DispatchAction::NormalLog;
 static const char *loggerId = "default";
-static const char *additionalInfoFormat = " {%s} [ pid = %d %s uid = %d ]";
+static const char *additionalInfoFormat = "[path=%s, action=%s, ret=%s, pid=%d, pname=%s, uid=%d] ";
 static el::Logger *defaultLogger;
 
 const int MaxFuseArgs = 32;
@@ -157,7 +157,7 @@ static void loggedfs_log(const char *path, const char *action, const int returnc
         char *additionalInfo = NULL;
 
         char *caller_name = getcallername();
-        asprintf(&additionalInfo, additionalInfoFormat, retname, fuse_get_context()->pid, config.isPrintProcessNameEnabled() ? caller_name : "", fuse_get_context()->uid);
+        asprintf(&additionalInfo, additionalInfoFormat, path, action, retname, fuse_get_context()->pid, config.isPrintProcessNameEnabled() ? caller_name : "", fuse_get_context()->uid);
 
         va_start(args, format);
         vasprintf(&buf, format, args);
@@ -165,11 +165,11 @@ static void loggedfs_log(const char *path, const char *action, const int returnc
 
         if (returncode >= 0)
         {
-            ELPP_WRITE_LOG(el::base::Writer, el::Level::Info, dispatchAction, "default") << buf << additionalInfo;
+            ELPP_WRITE_LOG(el::base::Writer, el::Level::Info, dispatchAction, "default") << additionalInfo << buf;
         }
         else
         {
-            ELPP_WRITE_LOG(el::base::Writer, el::Level::Error, dispatchAction, "default") << buf << additionalInfo;
+            ELPP_WRITE_LOG(el::base::Writer, el::Level::Error, dispatchAction, "default") << additionalInfo << buf;
         }
 
         free(buf);
